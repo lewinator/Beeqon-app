@@ -4,7 +4,7 @@ android {
     namespace = "za.co.beeqon.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "za.co.beeqon.app"
+        applicationId "beeqon.co.za"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "1")
