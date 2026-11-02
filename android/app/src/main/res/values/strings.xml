@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Beeqon</string>
     <string name="title_activity_main">Beeqon</string>
-    <string name="package_name">za.co.beeqon.app</string>
+    <string name="package_name">beeqon.co.za</string>
     <string name="custom_url_scheme">za.co.beeqon.app</string>
 </resources>
