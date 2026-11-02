@@ -5,7 +5,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const dev = process.env.CAP_DEV === '1';
 
 const config: CapacitorConfig = {
-  appId: 'za.co.beeqon.app',
+  appId: 'beeqon.co.za',
   appName: 'Beeqon',
   // Offline fallback page only; the real screens come from server.url.
   webDir: 'android-shell',
