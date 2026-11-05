@@ -1,0 +1,179 @@
+name: iOS release
+
+# Started from Beeqon → Settings → App Releases → "Publish update".
+# Builds and signs the iPhone app, uploads it to TestFlight, then tags the exact
+# source (ios-vX.Y.Z) and keeps the .ipa on a GitHub Release.
+#
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   APPLE_DISTRIBUTION_P12   Apple Distribution certificate + private key (.p12), base64
+#   APPLE_P12_PASSWORD       export password chosen when the .p12 was created
+#   IOS_PROVISION_PROFILE_BASE64  the "Beeqon App Store" provisioning profile, base64
+#   ASC_KEY_ID               App Store Connect API key ID
+#   ASC_ISSUER_ID            App Store Connect API issuer ID
+#   ASC_KEY_P8_BASE64        the .p8 key file, base64
+
+run-name: "iOS release ${{ inputs.version_name }} [${{ inputs.release_id }}]"
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_id:
+        description: Beeqon release record id (leave blank for a manual build)
+        required: false
+        default: ""
+      version_name:
+        description: Version shown to users, e.g. 1.0.1
+        required: true
+        default: "1.0.0"
+      version_code:
+        description: Build number (whole number, always increasing)
+        required: false
+        default: ""
+      track:
+        description: kept for parity with the Android workflow (unused)
+        required: false
+        default: internal
+      notes:
+        description: What changed
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Refuse a version that was already published
+        run: |
+          if git rev-parse -q --verify "refs/tags/ios-v${{ inputs.version_name }}" >/dev/null; then
+            echo "::error::Version ${{ inputs.version_name }} has already been published."
+            exit 1
+          fi
+
+      - name: Select the newest Xcode 26
+        # Apple requires App Store uploads to be built with the iOS 26 SDK (Xcode 26+).
+        run: |
+          latest=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          [ -z "$latest" ] && latest=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          echo "Selecting $latest"
+          sudo xcode-select -s "$latest"
+          xcodebuild -version
+
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install
+      - run: bunx cap sync ios
+
+      - name: Restore the signing certificate
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.APPLE_DISTRIBUTION_P12 }}
+          p12-password: ${{ secrets.APPLE_P12_PASSWORD }}
+
+      - name: Restore the provisioning profile
+        env:
+          PROFILE_B64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+        run: |
+          if [ -z "$PROFILE_B64" ]; then echo "::error::IOS_PROVISION_PROFILE_BASE64 is not set"; exit 1; fi
+          echo "$PROFILE_B64" | base64 -d > "$RUNNER_TEMP/profile.mobileprovision"
+          UUID=$(security cms -D -i "$RUNNER_TEMP/profile.mobileprovision" | xmllint --xpath '/plist/dict/key[text()="UUID"]/following-sibling::string[1]/text()' -)
+          echo "Profile UUID: $UUID"
+          echo "PROFILE_UUID=$UUID" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$RUNNER_TEMP/profile.mobileprovision" "$HOME/Library/MobileDevice/Provisioning Profiles/$UUID.mobileprovision"
+
+      - name: Build and sign the app
+        env:
+          VERSION_NAME: ${{ inputs.version_name }}
+          VERSION_CODE: ${{ inputs.version_code != '' && inputs.version_code || github.run_number }}
+        run: |
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath "$RUNNER_TEMP/Beeqon.xcarchive" archive \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
+            MARKETING_VERSION="$VERSION_NAME" \
+            CURRENT_PROJECT_VERSION="$VERSION_CODE" \
+            | tail -40
+
+      - name: Export the App Store file
+        env:
+          VERSION_NAME: ${{ inputs.version_name }}
+        run: |
+          cat > "$RUNNER_TEMP/export-options.plist" <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>signingCertificate</key><string>Apple Distribution</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>beeqon.co.za</key><string>${PROFILE_UUID}</string>
+            </dict>
+            <key>stripSwiftSymbols</key><true/>
+            <key>uploadSymbols</key><true/>
+          </dict>
+          </plist>
+          EOF
+          sed -e "s/\${PROFILE_UUID}/$PROFILE_UUID/" "$RUNNER_TEMP/export-options.plist" > "$RUNNER_TEMP/export-options-final.plist"
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/Beeqon.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/export-options-final.plist" \
+            -exportPath "$RUNNER_TEMP/export" | tail -20
+          IPA=$(ls "$RUNNER_TEMP/export"/*.ipa | head -1)
+          cp "$IPA" "$RUNNER_TEMP/beeqon-${VERSION_NAME}.ipa"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: beeqon-release-ipa
+          path: ${{ runner.temp }}/beeqon-${{ inputs.version_name }}.ipa
+
+      - name: Upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          IPA: ${{ runner.temp }}/beeqon-${{ inputs.version_name }}.ipa
+        run: |
+          if [ -z "$ASC_KEY_P8_BASE64" ]; then echo "::error::ASC_KEY_P8_BASE64 is not set"; exit 1; fi
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          echo "$ASC_KEY_P8_BASE64" | base64 -d > "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+          # Upload with Apple's Transporter. The altool uploader in Xcode 26 regressed
+          # and fails to build the App Store Connect token, so Transporter is primary.
+          ITMS=$(find /Applications/Xcode*.app -name iTMSTransporter -path '*itms/bin*' 2>/dev/null | sort | tail -1)
+          if [ -n "$ITMS" ]; then
+            echo "Uploading with $ITMS"
+            "$ITMS" -m upload -apiIssuer "$ASC_ISSUER_ID" -apiKey "$ASC_KEY_ID" \
+              -assetFile "$IPA" -k 100000
+          else
+            echo "::warning::iTMSTransporter not found — falling back to altool"
+            xcrun altool --upload-app --type ios -f "$IPA" \
+              --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID" --use-old-altool
+          fi
+          rm -f "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+
+      - name: Tag source and keep the file
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          TAG="ios-v${{ inputs.version_name }}"
+          git tag "$TAG" "$GITHUB_SHA"
+          git push origin "$TAG"
+          gh release create "$TAG" "$RUNNER_TEMP/beeqon-${{ inputs.version_name }}.ipa" \
+            --title "Beeqon ${{ inputs.version_name }} (iOS)" --notes "${NOTES:-iOS release}"
+
+      - name: Remove signing assets
+        if: always()
+        run: rm -f "$RUNNER_TEMP/profile.mobileprovision"
