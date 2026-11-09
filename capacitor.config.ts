@@ -10,6 +10,7 @@ const config: CapacitorConfig = {
   // Offline fallback page only; the real screens come from server.url.
   webDir: 'android-shell',
   server: {
+    errorPath: 'index.html',
     url: dev
       ? 'https://fbb80337-ed44-4d02-820b-2e038aa621d0.lovableproject.com?forceHideBadge=true'
       : 'https://beeqon.co.za/auth',
