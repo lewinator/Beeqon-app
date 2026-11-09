@@ -1,0 +1,21 @@
+{
+  "source": "ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png",
+  "source_sha256": "5af14428e69cc3da4cfb10ab57422aaafbfecbb8aed7311dbff60402125816d8",
+  "files": {
+    "android/app/src/main/res/mipmap-mdpi/ic_launcher.png": "34cfdeb4c2b871385861b46e0d39cd574ce73d04d28fcdb7703f60501ffb8e61",
+    "android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png": "34cfdeb4c2b871385861b46e0d39cd574ce73d04d28fcdb7703f60501ffb8e61",
+    "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png": "642458eaf293bf92c66836ff1de87fca889dca1ef8f96b91e65882271dca59ad",
+    "android/app/src/main/res/mipmap-hdpi/ic_launcher.png": "774b4a1badb378cdbedaf4339596b837bc1c652dd23b2a4d232d1cd3218a989f",
+    "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png": "774b4a1badb378cdbedaf4339596b837bc1c652dd23b2a4d232d1cd3218a989f",
+    "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png": "e656d46c26c31b9d52c1e7aca493e1c1f5c4de7b8393e7f5d666ce5ea3d38233",
+    "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png": "16af5b73926adb54996219285f9674e5cd01a89675febfd33eac521aab3dab1e",
+    "android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png": "16af5b73926adb54996219285f9674e5cd01a89675febfd33eac521aab3dab1e",
+    "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png": "a626b69a854e24fb0d2de8b89798f43107528a444f3ddd037fca595e97ce8ce7",
+    "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": "493509b5b5f00c1f57725a0ae5e1f39a064a7082f0e55b3e3cce85aa0c48c528",
+    "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png": "493509b5b5f00c1f57725a0ae5e1f39a064a7082f0e55b3e3cce85aa0c48c528",
+    "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png": "b591ad83335e539a150ec56504c70950828cc5eb975383e249903bfbda9d7bd6",
+    "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": "87a0991256956b0f1587a2b27cf5bb5fa26dc2d06b07dbbcf0e7d0395cf3ec54",
+    "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png": "87a0991256956b0f1587a2b27cf5bb5fa26dc2d06b07dbbcf0e7d0395cf3ec54",
+    "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png": "deb9d8dc38fcd50c849ccc228e1001ef85735dfc54078044d392c20a1abd94d6"
+  }
+}
