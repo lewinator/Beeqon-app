@@ -1,4 +1,29 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Beeqon</title>
-<style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#0B1220;color:#e5e7eb;font-family:system-ui;text-align:center;padding:24px}button{margin-top:16px;padding:12px 20px;border-radius:10px;border:0;background:#f5b301;font-weight:600}</style></head>
-<body><div><h2>Beeqon</h2><p>You're offline. Connect to the internet to continue.</p><button onclick="location.href='https://beeqon.co.za/auth'">Try again</button></div></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Connection unavailable | Beeqon</title>
+  <style>
+    /* Offline copies of the app's semantic tokens: no network dependencies. */
+    :root{--background:210 33% 98%;--foreground:220 75% 10%;--primary:174 84% 32%;--primary-foreground:0 0% 100%;--muted-foreground:220 15% 40%;--border:210 20% 88%;--accent:44 89% 61%}
+    @media(prefers-color-scheme:dark){:root{--background:220 75% 7%;--foreground:210 20% 96%;--primary:167 76% 55%;--primary-foreground:220 75% 9%;--muted-foreground:210 15% 65%;--border:220 40% 18%}}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;min-height:100dvh;background:hsl(var(--background));color:hsl(var(--foreground));font-family:system-ui,sans-serif;letter-spacing:0;display:flex;flex-direction:column;padding: max(28px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom))}
+    header{font-size:24px;font-weight:750;display:flex;align-items:center;gap:10px}header span{width:8px;height:8px;border-radius:50%;background:hsl(var(--accent))}
+    main{width:100%;max-width:400px;margin:auto;text-align:center;padding:48px 0}svg{width:76px;height:76px;color:hsl(var(--primary));margin-bottom:24px}h1{font-size:28px;line-height:1.2;margin:0 0 16px;font-weight:700}p{font-size:16px;line-height:1.6;color:hsl(var(--muted-foreground));margin:0 0 28px}
+    button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;border:0;border-radius:8px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font:600 16px system-ui;cursor:pointer}button svg{width:20px;height:20px;margin:0;color:inherit}button:focus-visible{outline:3px solid hsl(var(--primary));outline-offset:4px}button:active{opacity:.85}footer{text-align:center;color:hsl(var(--muted-foreground));font-size:13px;line-height:1.5}
+  </style>
+</head>
+<body>
+  <header>Beeqon<span aria-hidden="true"></span></header>
+  <main>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="m2 2 20 20M8.5 16.5a5 5 0 0 1 7 0M5 13a10 10 0 0 1 5-2.8M15 11a10 10 0 0 1 4 2M2 9a16 16 0 0 1 5-3M10 5a16 16 0 0 1 12 4"/><circle cx="12" cy="20" r=".8"/></svg>
+    <h1>Let’s get you connected</h1>
+    <p>Beeqon can’t connect right now. Turn on Wi-Fi or mobile data, then try again.</p>
+    <button type="button" id="retry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></svg>Try again</button>
+  </main>
+  <footer>If you’re already connected, please try again in a moment.</footer>
+  <script>document.getElementById('retry').addEventListener('click',function(){window.location.replace('https://beeqon.co.za/auth')});</script>
+</body>
+</html>
