@@ -61,6 +61,8 @@ jobs:
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: "21", cache: gradle }
       - run: bun install
+      - name: Verify both app identities, icons and permissions
+        run: python3 scripts/check-mobile-package.py
       - run: bunx cap sync android
 
       - name: Restore upload key
@@ -101,7 +103,7 @@ jobs:
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: za.co.beeqon.app
+          packageName: beeqon.co.za
           releaseFiles: ${{ runner.temp }}/beeqon-${{ inputs.version_name }}.aab
           track: ${{ inputs.track }}
           status: completed
