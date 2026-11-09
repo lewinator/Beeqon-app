@@ -72,6 +72,8 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
       - run: bun install
+      - name: Verify both app identities, icons and permissions
+        run: python3 scripts/check-mobile-package.py
       - run: bunx cap sync ios
 
       - name: Restore the signing certificate
